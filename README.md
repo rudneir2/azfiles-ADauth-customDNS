@@ -1,9 +1,10 @@
-titulo
+# titulo
 
 texto introdutorio
 
 picture 1 - referencia da alejandra
 
+![image](https://user-images.githubusercontent.com/97529152/148959058-7b4c661c-7a5a-4511-a5fa-6a44272df21c.png)
 
 picture 2 - minha picture
 
