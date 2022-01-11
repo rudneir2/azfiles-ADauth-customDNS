@@ -1,40 +1,53 @@
-# titulo
+# Moving on-premises File Server to Azure File with AD authentication and Custom DNS
 
-texto introdutorio
+Many companies that decide to migrate their File Server to Azure File want to keep their user authentication against File servers to keep their ACL rules. So that this may happen they need to set up Azure files (after migration) to authenticate against their on-premises AD. Usually this hybrid scenario requires to keep using company's DNS that usually resides on-premises as well. Below you will see how to migrate an on-premises File Server to Azure and keep users ACL by authenticatingg on AD and using the existing DNS.
 
-picture 1 - referencia da alejandra
+FTA Team leading by Alejandra designed a map that may help to visualize others options to migrate to the Cloud. Take a look at here: <link>
 
 ![image](https://user-images.githubusercontent.com/97529152/148959058-7b4c661c-7a5a-4511-a5fa-6a44272df21c.png)
 
-picture 2 - minha picture
+## Step by step in how to migrate to Azure File with AD authentication and Custom DNS
 
+This below is the architecture we are going to work
 ![image](https://user-images.githubusercontent.com/97529152/148958205-0b9b43c9-4ba2-4ce9-b9dd-0a480e1dd927.png)
 
-inicio do procedimento
+### Prerequisites
 
-Step by step (From scratch) to migrate on-premises File Server into Azure Files
+Before we start, let's take a look at in the prerequisites.
 
-1.	Define what Azure AD (Azure Tenant) you will use
-a.	A very new one
-b.	The same of your O365 subscription
-2.	create an Azure subscription
-a.	through EA Portal
-b.	through another method (Free, MSDN, PAYG)
-3.	Set your permissions (RBAC)
-a.	You will need AD permission to perform AD domain join and DNS administration
-4.	Sync your ADDS with Azure AD by using Azure AD Connect
-a.	Define the type of sync (PTA, Hash Password, ADFS)
-5.	create a VNET
-a.	create at least two subnets, one for the Private Endpoint and one for the Azure Firewall (DNS proxy)
-b.	set custom DNS on your Azure VNET
-6.	build a VPN GW
-a.	create a gateway subnet in your VNET
-b.	in case you are working in an existing Azure environment, you may want to peer some VNETs
-c.	through a VPN S2S
-d.	through an ExpressRoute
-7.	create a Storage Account (see best practices for Azure File)
-a.	create a file share
-8.	create a private endpoint
+This architecture assumes that you have the following:
+-	Azure subscription 
+-	RBAC permission to perform the deployment of Azure Files, Virtual Network, Azure Firewall and VPN or Express Route.
+-	It will be required elevated permission to work with Azure AD to synchronize ADDS with it.
+
+
+### Step 1 - Sync ADDS with Azure AD
+You will have to syncronize your ADDS with Azure AD through AD Connect. There 3 options to syncronize them, but one of the most used is the "hash password sync". So, let's see how to use it and set this up through this link: 
+https://docs.microsoft.com/en-us/azure/active-directory/hybrid/how-to-connect-install-express
+
+### Step 2 - create a VNET
+Create a virtual network with at least two subnets, one for the private endpoint we are going to use later and one for the DNS proxy server we are going to use in the solution. See how to create a VNET here:
+https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
+
+### Step 3 - connecting on-premises on Azure
+In case you still don't have your on-premises environment connected on Azure, you will have to build a VPN or ExpressRoute. VPN is the easiest way to do it. See how to deploy a VPN gateway here:
+https://docs.microsoft.com/en-us/azure/vpn-gateway/tutorial-create-gateway-portal
+
+### Step 4 - create the Storage Account
+Create a storage account and then create a file share. See how to create a file share on top of a Storage account:
+https://docs.microsoft.com/en-us/azure/storage/files/storage-how-to-create-file-share?tabs=azure-portal
+
+### Step 5 - create the private endpoint
+After you have your storage account and file server done, you will create a private endpoint to your file share. Private endpoints is a NIC (Network Interface Card) created inside a subnet and attached to an Azure service, in this case, the Azure storage. See how to implement it here Private endpoint for storage here:
+https://docs.microsoft.com/en-us/azure/storage/common/storage-private-endpoints
+
+### Step 6 - create the private endpoint
+This solution assumes that DNS server will be in the on-premises environment and that this existent DNS server is the one used to resolve all ip addresses, including Azure file FQDN. However Azure file server FQDN is by default resolved through Azure DNS (Azure internal infrastructure of DNS) and currently there is a rule that require that DNS queries to internal Azure DNS need to be originated from an Azure VNET, and not be originated from the on-premises DNS. 
+That means you will need to have a DNS proxy inside the VNET to send those queries to the internal Azure DNS. This is explained through this diagram below that is part of this Microsoft article. 
+
+
+
+
 9.	create the DNS proxy inside the VNET (to talk to Azure DNS)
 a.	it could be a VM with Windows Server and DNS role
 b.	or it could be an Azure Firewall working as DNS Proxy
