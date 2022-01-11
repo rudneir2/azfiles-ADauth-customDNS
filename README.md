@@ -41,47 +41,63 @@ https://docs.microsoft.com/en-us/azure/storage/files/storage-how-to-create-file-
 After you have your storage account and file server done, you will create a private endpoint to your file share. Private endpoints is a NIC (Network Interface Card) created inside a subnet and attached to an Azure service, in this case, the Azure storage. See how to implement it here Private endpoint for storage here:
 https://docs.microsoft.com/en-us/azure/storage/common/storage-private-endpoints
 
-### Step 6 - create the private endpoint
+### Step 6 - create the DNS Server on VNET to work as a DNS proxy
 This solution assumes that DNS server will be in the on-premises environment and that this existent DNS server is the one used to resolve all ip addresses, including Azure file FQDN. However Azure file server FQDN is by default resolved through Azure DNS (Azure internal infrastructure of DNS) and currently there is a rule that require that DNS queries to internal Azure DNS need to be originated from an Azure VNET, and not be originated from the on-premises DNS. 
-That means you will need to have a DNS proxy inside the VNET to send those queries to the internal Azure DNS. This is explained through this diagram below that is part of this Microsoft article. 
+That means you will need to have a DNS proxy inside the VNET to send those queries to the internal Azure DNS. This is explained through this diagram below that is part of this Microsoft article: https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-dns#on-premises-workloads-using-a-dns-forwarder
 
+![image](https://user-images.githubusercontent.com/97529152/149030657-266911a4-9f33-435d-942a-bb522a0ccd7e.png)
 
+The example above uses a SQL Server instead of a Storage File server, but the example is exactly the same. 
 
+You will also see a VM called DNS forwarder (10.5.0.254), this could be a Windows Server VM with DNS server role, a Linux Server with DNS server or an Azure Firewall with DNS proxy (PaaS).
 
-9.	create the DNS proxy inside the VNET (to talk to Azure DNS)
-a.	it could be a VM with Windows Server and DNS role
-b.	or it could be an Azure Firewall working as DNS Proxy
-10.	Set up Azure File to be authenticated with on-premises AD
-a.	Enable ADDS authentication for Azure file (run PS command)
-b.	Assign share-level permission (RBAC)
-c.	Configure directory and file level permission over SMB (Windows ACL)
-11.	In the on-premises side, create a DNS Conditional Forwarder at your DNS server
+### Step 7 - set conditional forwarder on on-premises DNS server
+Part of the implementation of private endpoint with a custom DNS is set the custom DNS (on-premises) with a conditional forwarder by pointing out the ip address of the new DNS proxy implemented on the VNET. See it on the diagram above how this configuration must look like. This non-Microsoft link may help you in how to do it:
+https://www.readandexecute.com/how-to/server-2016/dns/configure-conditional-forwarders-windows-server-2016/
 
+The DNS Domain must be "file.core.windows.net" and the IP address must be the IP Address of the new DNS server created on the VNET.
 
-Azure Files main features
+### Step 8 - set Azure File to be authenticated on on-premises ADDS
+Set up Azure File to be authenticated with on-premises AD will be a 4 parts:
 
-•	General purpose v1 (HDD based):
-o	not recommended
-o	doesn’t support lots of new features
-•	General purpose v2 (HDD based):
-o	only SMB
-o	LRS, ZRS, GRS, GZRS
-o	5TiB by default or 100TiB only LRS, ZRS
-•	FileStorage storage account (SSD based)
-o	SMB or NFS / 
-o	LRS and ZRS
-o	up to 100TiB by default (in GPv2)
-o	not available in all regions
+#### Part 1 - Enable ADDS authentication for Azure file (run PS command)
+https://docs.microsoft.com/en-us/azure/storage/files/storage-files-identity-ad-ds-enable
 
-Azure Files (some) best practices
+#### Part 2 - Assign share-level permission (RBAC)
+https://docs.microsoft.com/en-us/azure/storage/files/storage-files-identity-ad-ds-assign-permissions?tabs=azure-portal
 
-•	only use the File Share in a storage account (don't mix with blob or others)
-•	pay attention in the storage account IOPS limitation
-•	ideally map file share 1:1 (one file share per storage account) or
-•	group file shares that are not so active in the same storage account and highly active separated
-•	don’t use GPv1
+#### Part 3 - Configure directory and file level permission over SMB (Windows ACL)
+https://docs.microsoft.com/en-us/azure/storage/files/storage-files-identity-ad-ds-configure-permissions
 
-Azure Files tools to move data from on-premises
+#### Part 4 - mount the file share from a domain-joined VM
+https://docs.microsoft.com/en-us/azure/storage/files/storage-files-identity-ad-ds-mount-file-share
+
+## Azure Files main features
+
+### General purpose v1 (HDD based):
+- not recommended
+- doesn’t support lots of new features
+
+### General purpose v2 (HDD based):
+- only SMB
+- LRS, ZRS, GRS, GZRS
+- 5TiB by default or 100TiB only LRS, ZRS
+
+### FileStorage storage account (SSD based)
+- SMB or NFS 
+- LRS and ZRS
+- up to 100TiB by default (in GPv2)
+- not available in all regions
+
+### Azure Files best practices
+
+- only use the File Share in a storage account (don't mix with blob or others)
+- pay attention in the storage account IOPS limitation
+- ideally map file share 1:1 (one file share per storage account) or
+- group file shares that are not so active in the same storage account and highly active separated
+- don’t use GPv1
+
+### Azure Files tools to move data from on-premises
 
  
 
