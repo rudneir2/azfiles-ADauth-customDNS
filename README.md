@@ -1,6 +1,15 @@
-STORAGE SCENARIO MIGRATIONS
+titulo
 
-SCENARIO D – File Servers with DFS (Distributed File Name)
+texto introdutorio
+
+picture 1 - referencia da alejandra
+
+
+picture 2 - minha picture
+
+![image](https://user-images.githubusercontent.com/97529152/148958205-0b9b43c9-4ba2-4ce9-b9dd-0a480e1dd927.png)
+
+inicio do procedimento
 
 Step by step (From scratch) to migrate on-premises File Server into Azure Files
 
