@@ -2,7 +2,7 @@
 
 Many companies that decide to migrate their File Server to Azure File want to keep their user authentication against File servers to keep their ACL rules. So that this may happen they need to set up Azure files (after migration) to authenticate against their on-premises AD. Usually this hybrid scenario requires to keep using company's DNS that usually resides on-premises as well. Below you will see how to migrate an on-premises File Server to Azure and keep users ACL by authenticatingg on AD and using the existing DNS.
 
-FTA Team leading by Alejandra designed a map that may help to visualize others options to migrate to the Cloud. Take a look at here: <link>
+The instructions in detail below is related to the highlighted path described in the diagram available at FTA Team github repository, led by Alejandra Palacios, that contains others options to migrate Files into the Cloud.
 
 ![image](https://user-images.githubusercontent.com/97529152/148959058-7b4c661c-7a5a-4511-a5fa-6a44272df21c.png)
 
@@ -72,6 +72,9 @@ https://docs.microsoft.com/en-us/azure/storage/files/storage-files-identity-ad-d
 #### Part 4 - mount the file share from a domain-joined VM
 https://docs.microsoft.com/en-us/azure/storage/files/storage-files-identity-ad-ds-mount-file-share
 
+#### IMPORTANT:
+Azure RBAC share-level permissions work as the high-level gatekeeper that determines whether a user can access the share. While the Windows ACLs operate at a more granular level to determine what operations the user can do at the directory or file level. 
+
 ## Azure Files main features
 
 ### General purpose v1 (HDD based):
@@ -99,53 +102,8 @@ https://docs.microsoft.com/en-us/azure/storage/files/storage-files-identity-ad-d
 
 ### Azure Files tools to move data from on-premises
 
+![image](https://user-images.githubusercontent.com/97529152/149034890-6e6df610-1282-4832-bc5b-a5fb3520eac1.png)
  
-
-Private endpoint detailed architecture and step-by-step
-
-•	DNS query must be originated from the VNET to Azure DNS.
-•	Three options to DNS forwarder:
-o	Win VM with DNS Server
-o	Linux VM with DNS Server
-o	Azure Firewall
-
-
-
-
-
-
-
-
-
-
-1.	Configure Private endpoint for Storage
-•	Test access with nslookup
-2.	Configure Azure Firewall with DNS proxy
-•	Set DNS proxy with Azure DNS IP (168.63.129.16)
-•	Az Firewall > Firewall manager > Az FW Policies > DNS
-•	Capture Azure Firewall private IP
-3.	At your DNS Server on-premises set Conditional forwarder
-•	use Azure Firewall private IP
-•	Set conditional forwarder to domain “file.core.windows.net”
-4.	Test access again with nslookup
-5.	Set storage account networking 
-
-
-Setting up the Authentication with ADDS (on-premises AD)
-
-1.	create Storage Account and File share
-2.	enable ADDS authentication for your Azure File share
-•	download AzFilesHybrid module to use with Powershell
-•	run Join-AzStorageAccountForAuth
-•	** run as Administrator **
-3.	configure share-level permissions to the users/groups (through RBAC)
-4.	configure directory and file level permission (ACL) over SMB
-5.	test it.
-
- 
-IMPORTANT:
-
-Azure RBAC share-level permissions work as the high-level gatekeeper that determines whether a user can access the share. While the Windows ACLs operate at a more granular level to determine what operations the user can do at the directory or file level. 
 
 
 
