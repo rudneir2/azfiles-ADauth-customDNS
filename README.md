@@ -33,7 +33,7 @@ https://docs.microsoft.com/en-us/azure/virtual-network/quick-create-portal
 In case you still don't have your on-premises environment connected on Azure, you will have to build a VPN or ExpressRoute. VPN is the easiest way to do it. See how to deploy a VPN gateway here:
 https://docs.microsoft.com/en-us/azure/vpn-gateway/tutorial-create-gateway-portal
 
-### Step 4 - create the Storage Account
+### Step 4 - create the Storage Account and File Share
 Create a storage account and then create a file share. See how to create a file share on top of a Storage account:
 https://docs.microsoft.com/en-us/azure/storage/files/storage-how-to-create-file-share?tabs=azure-portal
 
